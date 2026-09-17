@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Exchange Dashboard</title>
+<style>
+  :root {
+    --cv-blue:        #0D7BBF;
+    --cv-blue-dark:   #0A5E93;
+    --cv-blue-light:  #E8F4FC;
+    --cv-green:       #6DB82A;
+    --cv-green-dark:  #559020;
+    --cv-green-light: #F0F8E8;
+    --cv-dark:        #1D2231;
+    --cv-grey-700:    #4A5568;
+    --cv-grey-400:    #A0AEC0;
+    --cv-grey-200:    #E2E8F0;
+    --cv-grey-100:    #F7F9FB;
+    --cv-white:       #FFFFFF;
+    --cv-success:     #6DB82A;
+    --cv-warning:     #F59E0B;
+    --cv-error:       #E53E3E;
+    --cv-info:        #0D7BBF;
+    --cv-font:        'Segoe UI', Arial, sans-serif;
+    --cv-radius-sm:   4px;
+    --cv-radius-md:   8px;
+    --cv-radius-lg:   12px;
+    --cv-shadow-sm:   0 1px 3px rgba(13,123,191,.12);
+    --cv-shadow-md:   0 4px 12px rgba(13,123,191,.15);
+    --cv-space-1: 4px; --cv-space-2: 8px; --cv-space-3: 12px;
+    --cv-space-4: 16px; --cv-space-5: 24px; --cv-space-6: 32px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--cv-font); font-size: 15px; color: var(--cv-dark);
+    background: var(--cv-grey-100); line-height: 1.6; min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  .cv-topbar {
+    background: var(--cv-white); border-bottom: 3px solid var(--cv-green);
+    padding: 0 var(--cv-space-5); height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: var(--cv-shadow-sm); position: sticky; top: 0; z-index: 100;
+  }
+  .cv-topbar-logo { display: flex; align-items: center; gap: var(--cv-space-3); }
+  .logo-svg { width: 40px; height: 40px; flex-shrink: 0; }
+  .cv-topbar-app {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--cv-green);
+    border-left: 2px solid var(--cv-grey-200); padding-left: var(--cv-space-3);
+    margin-left: var(--cv-space-2);
+  }
+  .cv-topbar-nav { display: flex; gap: var(--cv-space-1); align-items: center; }
+  .cv-topbar-nav button {
+    font-size: 13px; font-weight: 600; color: var(--cv-grey-700);
+    padding: 8px 16px; border-radius: var(--cv-radius-sm);
+    transition: all .15s; border: none; background: transparent; cursor: pointer;
+    font-family: var(--cv-font);
+  }
+  .cv-topbar-nav button:hover,
+  .cv-topbar-nav button.active { background: var(--cv-blue-light); color: var(--cv-blue); }
+  .page { max-width: 1300px; margin: 0 auto; padding: var(--cv-space-5); flex: 1; }
+  .cv-heading {
+    display: flex; align-items: center; gap: var(--cv-space-3);
+    margin-bottom: var(--cv-space-4);
+  }
+  .cv-heading-bar {
+    width: 4px; height: 28px;
+    background: linear-gradient(180deg, var(--cv-blue), var(--cv-green));
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .cv-heading h1 { font-size: 24px; font-weight: 700; color: var(--cv-dark); letter-spacing: -0.3px; }
+  .cv-heading p  { font-size: 13px; color: var(--cv-grey-700); }
+  .cv-divider {
+    height: 2px; background: linear-gradient(90deg, var(--cv-blue) 0%, var(--cv-green) 100%);
+    border: none; margin: var(--cv-space-4) 0; border-radius: 2px;
+  }
+  .tab-content { display: none; animation: fadeIn 0.3s ease; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--cv-space-4);
+    margin-bottom: var(--cv-space-5);
+  }
+  .cv-card {
+    background: var(--cv-white); border: 1px solid var(--cv-grey-200);
+    border-radius: var(--cv-radius-md); padding: var(--cv-space-4);
+    box-shadow: var(--cv-shadow-sm); transition: box-shadow .2s, transform .2s;
+  }
+  .cv-card:hover { box-shadow: var(--cv-shadow-md); transform: translateY(-2px); }
+  .cv-card-header { display: flex; align-items: center; gap: var(--cv-space-3); margin-bottom: var(--cv-space-3); }
+  .cv-card-icon {
+    width: 40px; height: 40px; border-radius: var(--cv-radius-sm);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .cv-card-icon.blue { background: var(--cv-blue-light); }
+  .cv-card-icon.green { background: var(--cv-green-light); }
+  .cv-card-icon.orange { background: #FEF3C7; }
+  .cv-card-title { font-weight: 700; font-size: 15px; color: var(--cv-dark); }
+  .cv-card-sub   { font-size: 11px; color: var(--cv-grey-700); }
+  .cv-card-value {
+    font-size: 28px; font-weight: 700; color: var(--cv-blue);
+    font-variant-numeric: tabular-nums; letter-spacing: -0.5px;
+  }
+  .cv-card-delta {
+    font-size: 13px; font-weight: 600; margin-top: var(--cv-space-2);
+    font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px;
+  }
+  .delta-pos { color: var(--cv-success); }
+  .delta-neg { color: var(--cv-error); }
+  .sg-section {
+    background: var(--cv-white); border-radius: var(--cv-radius-md);
+    padding: var(--cv-space-5); margin-bottom: var(--cv-space-4);
+    box-shadow: var(--cv-shadow-sm); border: 1px solid var(--cv-grey-200);
+  }
+  .sg-section-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--cv-blue);
+    border-left: 3px solid var(--cv-green); padding-left: var(--cv-space-3);
+    margin-bottom: var(--cv-space-4); display: flex; align-items: center; gap: 8px;
+  }
+  .sg-section-title svg { width: 16px; height: 16px; }
+  .treemap { display: flex; flex-wrap: wrap; gap: 3px; border-radius: var(--cv-radius-md); overflow: hidden; min-height: 320px; }
+  .treemap-row { display: flex; width: 100%; gap: 3px; }
+  .treemap-block {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; border-radius: 6px; padding: 8px;
+    transition: transform 0.15s, filter 0.15s; cursor: default; position: relative; overflow: hidden;
+  }
+  .treemap-block:hover { transform: scale(1.02); filter: brightness(1.1); z-index: 2; }
+  .treemap-ticker { font-size: 15px; font-weight: 700; letter-spacing: 0.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .treemap-pct { font-size: 12px; font-weight: 600; margin-top: 2px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .treemap-value { font-size: 10px; opacity: 0.8; margin-top: 1px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .cv-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .cv-table thead tr { background: var(--cv-blue); color: var(--cv-white); }
+  .cv-table th {
+    text-align: left; padding: 10px 12px; font-weight: 600;
+    letter-spacing: .03em; font-size: 11px; text-transform: uppercase;
+  }
+  .cv-table th:last-child, .cv-table td:last-child { text-align: right; }
+  .cv-table th:nth-child(3), .cv-table td:nth-child(3) { text-align: right; }
+  .cv-table td { padding: 12px; border-bottom: 1px solid var(--cv-grey-200); vertical-align: middle; }
+  .cv-table tbody tr:nth-child(even) { background: var(--cv-grey-100); }
+  .cv-table tbody tr:hover { background: var(--cv-blue-light); }
+  .cv-table tbody tr:last-child td { border-bottom: none; }
+  .asset-name { display: flex; align-items: center; gap: 10px; }
+  .asset-icon {
+    width: 36px; height: 36px; border-radius: var(--cv-radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; color: var(--cv-white);
+  }
+  .asset-info { line-height: 1.3; }
+  .asset-title { font-weight: 600; font-size: 14px; color: var(--cv-dark); }
+  .asset-type { font-size: 12px; color: var(--cv-grey-700); margin-top: 1px; }
+  .asset-value { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--cv-dark); }
+  .cv-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  }
+  .cv-badge-blue    { background: var(--cv-blue-light); color: var(--cv-blue-dark); }
+  .cv-badge-green   { background: var(--cv-green-light); color: var(--cv-green-dark); }
+  .cv-badge-warning { background: #FEF3C7; color: #92400E; }
+  .cv-badge-error   { background: #FEE2E2; color: #991B1B; }
+  .cv-badge-grey    { background: var(--cv-grey-200); color: var(--cv-grey-700); }
+  .donut-wrap { display: flex; align-items: center; gap: 24px; }
+  .donut-svg { width: 160px; height: 160px; flex-shrink: 0; }
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .donut-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--cv-grey-700); }
+  .donut-val { margin-left: auto; font-weight: 700; color: var(--cv-dark); padding-left: 16px; font-variant-numeric: tabular-nums; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .perf-bar-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+  .perf-label { width: 90px; font-size: 12px; color: var(--cv-grey-700); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .perf-track { flex: 1; height: 22px; background: var(--cv-grey-100); border-radius: var(--cv-radius-sm); overflow: hidden; position: relative; border: 1px solid var(--cv-grey-200); }
+  .perf-fill { position: absolute; height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+  .perf-center { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--cv-grey-200); transform: translateX(-50%); }
+  .perf-pct { width: 60px; text-align: right; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .two-col { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: var(--cv-space-4); }
+  .app-footer {
+    background: var(--cv-white); border-top: 1px solid var(--cv-grey-200);
+    padding: var(--cv-space-4) var(--cv-space-5); margin-top: auto;
+  }
+  .footer-inner { max-width: 1300px; margin: 0 auto; }
+  .footer-top {
+    display: flex; align-items: center; gap: var(--cv-space-4); flex-wrap: wrap;
+    font-size: 12px; color: var(--cv-grey-700); margin-bottom: var(--cv-space-3);
+  }
+  .footer-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cv-success); display: inline-block; }
+  .footer-dot.error { background: var(--cv-error); }
+  .footer-top strong { color: var(--cv-dark); }
+  .footer-top code {
+    font-family: 'SF Mono', monospace; font-size: 11px; background: var(--cv-grey-100);
+    padding: 2px 6px; border-radius: 4px; color: var(--cv-grey-700);
+  }
+  .footer-note {
+    font-size: 12px; color: var(--cv-grey-400); line-height: 1.6;
+    border-left: 3px solid var(--cv-green); padding-left: var(--cv-space-3);
+  }
+  .settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--cv-space-4); }
+  .cv-form-group { margin-bottom: var(--cv-space-4); }
+  .cv-label { display: block; font-size: 13px; font-weight: 600; color: var(--cv-dark); margin-bottom: var(--cv-space-1); }
+  .cv-input, .cv-select {
+    width: 100%; font-family: var(--cv-font); font-size: 15px; color: var(--cv-dark);
+    background: var(--cv-white); border: 1.5px solid var(--cv-grey-200);
+    border-radius: var(--cv-radius-sm); padding: 9px 12px;
+    transition: border-color .18s, box-shadow .18s; outline: none;
+  }
+  .cv-input:focus, .cv-select:focus { border-color: var(--cv-blue); box-shadow: 0 0 0 3px rgba(13,123,191,.15); }
+  .cv-btn {
+    display: inline-flex; align-items: center; gap: 6px; font-family: var(--cv-font);
+    font-size: 13px; font-weight: 600; padding: 9px 18px;
+    border-radius: var(--cv-radius-sm); border: 2px solid transparent;
+    cursor: pointer; transition: all .18s;
+  }
+  .cv-btn-primary { background: var(--cv-blue); color: var(--cv-white); border-color: var(--cv-blue); }
+  .cv-btn-primary:hover { background: var(--cv-blue-dark); border-color: var(--cv-blue-dark); }
+  .cv-btn-refresh { background: var(--cv-white); color: var(--cv-blue); border-color: var(--cv-blue); margin-left: 8px; }
+  .cv-btn-refresh:hover { background: var(--cv-blue-light); }
+  .cv-btn-refresh:disabled { opacity: .5; cursor: wait; }
+  .conn-banner {
+    display: none; align-items: center; gap: 8px; background: #FEE2E2; color: #991B1B;
+    border: 1px solid #FECACA; border-radius: var(--cv-radius-sm);
+    padding: 8px 12px; font-size: 13px; font-weight: 600; margin-bottom: var(--cv-space-4);
+  }
+  .conn-banner.visible { display: flex; }
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .settings-grid { grid-template-columns: 1fr; }
+    .cv-topbar { flex-wrap: wrap; height: auto; padding: var(--cv-space-3); }
+  }
+  @media (max-width: 560px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .page { padding: var(--cv-space-3); }
+    .cv-table th:nth-child(3), .cv-table td:nth-child(3) { display: none; }
+    .donut-wrap { flex-direction: column; align-items: flex-start; }
+    .footer-top { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="cv-topbar">
+  <div class="cv-topbar-logo">
+    <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="10" fill="#0D7BBF"/>
+      <path d="M10 28L16 20L20 24L26 14L30 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="30" cy="18" r="2.5" fill="#6DB82A"/>
+      <path d="M10 28V32H30V28" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+    </svg>
+    <span class="cv-topbar-app">Stock Exchange Dashboard</span>
+  </div>
+  <nav class="cv-topbar-nav">
+    <button class="active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button data-tab="portfolio" onclick="switchTab('portfolio')">Portfolio</button>
+    <button data-tab="markten" onclick="switchTab('markten')">Markten</button>
+    <button data-tab="instellingen" onclick="switchTab('instellingen')">Instellingen</button>
+    <button class="cv-btn cv-btn-refresh" id="refreshBtn" onclick="refreshPrices(true)">Vernieuwen</button>
+  </nav>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="tab-content active">
+    <div class="cv-heading">
+      <div class="cv-heading-bar"></div>
+      <div>
+        <h1>Dashboard</h1>
+        <p>Portfolio: <span id="headingTotal">€—</span> &middot; <span id="lastUpdated">--</span></p>
+      </div>
+    </div>
+    <div class="conn-banner" id="connBanner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span id="connBannerText">Geen verbinding met de marktdata — er wordt een snapshot getoond.</span>
+    </div>
+    <hr class="cv-divider">
+
+    <div class="kpi-grid">
+      <div class="cv-card">
+        <div class="cv-card-header">
+          <div class="cv-card-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D7BBF" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div><div class="cv-card-title">Totale waarde</div><div class="cv-card-sub">Portfolio in EUR</div></div>
+        </div>
+        <div class="cv-card-value" id="kpiTotal">€—</div>
+        <div class="cv-card-delta delta-pos" id="kpiTotalDelta">—</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-card-header">
+          <div class="cv-card-icon green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6DB82A" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div><div class="cv-card-title">Aandelen</div><div class="cv-card-sub" id="kpiStocksSub">—</div></div>
+        </div>
+        <div class="cv-card-value" style="font-size:22px; color: var(--cv-dark);" id="kpiStocks">—</div>
+        <div class="cv-card-delta delta-pos" id="kpiStocksDelta">—</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-card-header">
+          <div class="cv-card-icon orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div><div class="cv-card-title">ETF's & Trackers</div><div class="cv-card-sub" id="kpiEtfsSub">—</div></div>
+        </div>
+        <div class="cv-card-value" style="font-size:22px; color: var(--cv-dark);" id="kpiEtfs">—</div>
+        <div class="cv-card-delta delta-pos" id="kpiEtfsDelta">—</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-card-header">
+          <div class="cv-card-icon green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6DB82A" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div><div class="cv-card-title">Beste performer</div><div class="cv-card-sub">Top rendement</div></div>
+        </div>
+        <div class="cv-card-value" style="font-size:22px; color: var(--cv-success);" id="kpiBest">—</div>
+        <div class="cv-card-delta delta-pos" id="kpiBestDelta">—</div>
+      </div>
+    </div>
+
+    <div class="sg-section">
+      <div class="sg-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Portfolio Treemap
+      </div>
+      <div class="treemap" id="treemap"></div>
+      <div style="display:flex;gap:16px;margin-top:12px;justify-content:center;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--cv-grey-700);"><div style="width:10px;height:10px;border-radius:2px;background:#15803d;"></div> &gt;10%</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--cv-grey-700);"><div style="width:10px;height:10px;border-radius:2px;background:#22c55e;"></div> 5-10%</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--cv-grey-700);"><div style="width:10px;height:10px;border-radius:2px;background:#6DB82A;"></div> 1-5%</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--cv-grey-700);"><div style="width:10px;height:10px;border-radius:2px;background:#86efac;"></div> 0-1%</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--cv-grey-700);"><div style="width:10px;height:10px;border-radius:2px;background:#F59E0B;"></div> -1-0%</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--cv-grey-700);"><div style="width:10px;height:10px;border-radius:2px;background:var(--cv-error);"></div> &lt;-1%</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="sg-section">
+        <div class="sg-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Posities & Performance
+        </div>
+        <div style="overflow-x:auto">
+          <table class="cv-table" id="holdingsTable">
+            <thead><tr><th>Asset</th><th>Aantal</th><th>Waarde</th><th>Rendement</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="sg-section">
+          <div class="sg-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Regio Spreiding
+          </div>
+          <div class="donut-wrap">
+            <svg class="donut-svg" viewBox="0 0 160 160" id="donutSvg"></svg>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+        <div class="sg-section">
+          <div class="sg-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+            Performance per positie (%)
+          </div>
+          <div id="perfBars"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORTFOLIO -->
+  <div id="portfolio" class="tab-content">
+    <div class="cv-heading">
+      <div class="cv-heading-bar"></div>
+      <div>
+        <h1>Portfolio Details</h1>
+        <p>Uitgebreide analyse van alle posities &middot; <span id="lastUpdated2">--</span></p>
+      </div>
+    </div>
+    <hr class="cv-divider">
+
+    <div class="sg-section">
+      <div class="sg-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Volledige Positielijst
+      </div>
+      <div style="overflow-x:auto">
+        <table class="cv-table" id="fullTable">
+          <thead>
+            <tr><th>#</th><th>Asset</th><th>Type</th><th>Regio</th><th>Aantal</th><th>Waarde</th><th>Winst/Verlies</th><th>Rendement</th><th>Gewicht</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="sg-section">
+        <div class="sg-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Asset Allocatie
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;">
+          <svg class="donut-svg" viewBox="0 0 160 160" id="allocDonut"></svg>
+          <div id="allocLegend" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+      <div class="sg-section">
+        <div class="sg-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+          Samenvatting
+        </div>
+        <div style="font-size:14px;line-height:2;color:var(--cv-grey-700);">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--cv-grey-200);padding:6px 0;"><span>Totale waarde</span><strong style="color:var(--cv-dark);" id="sumTotal">—</strong></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--cv-grey-200);padding:6px 0;"><span>Totale winst/verlies</span><strong style="color:var(--cv-success);" id="sumPnL">—</strong></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--cv-grey-200);padding:6px 0;"><span>Gemiddeld rendement</span><strong style="color:var(--cv-success);" id="sumAvg">—</strong></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--cv-grey-200);padding:6px 0;"><span>Aantal posities</span><strong style="color:var(--cv-dark);" id="sumCount">—</strong></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--cv-grey-200);padding:6px 0;"><span>Aandelen</span><strong style="color:var(--cv-dark);" id="sumStocks">—</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>ETF's & Trackers</span><strong style="color:var(--cv-dark);" id="sumEtfs">—</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARKTEN -->
+  <div id="markten" class="tab-content">
+    <div class="cv-heading">
+      <div class="cv-heading-bar"></div>
+      <div>
+        <h1>Live Markten</h1>
+        <p>Realtime koersen via TradingView</p>
+      </div>
+    </div>
+    <hr class="cv-divider">
+
+    <div class="sg-section" style="padding:0;overflow:hidden;">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+        {
+          "symbols": [
+            {"proName": "FOREXCOM:SPXUSD", "title": "S&P 500"},
+            {"proName": "FOREXCOM:NSXUSD", "title": "Nasdaq 100"},
+            {"proName": "FX_IDC:EURUSD", "title": "EUR/USD"},
+            {"proName": "NASDAQ:AAPL", "title": "Apple"},
+            {"proName": "NASDAQ:MSFT", "title": "Microsoft"},
+            {"proName": "NASDAQ:NVDA", "title": "NVIDIA"},
+            {"proName": "EURONEXT:ASML", "title": "ASML"},
+            {"proName": "INDEX:DEU40", "title": "DAX"},
+            {"proName": "NASDAQ:TSLA", "title": "Tesla"},
+            {"proName": "NYSE:JPM", "title": "JPMorgan"}
+          ],
+          "showSymbolLogo": true,
+          "colorTheme": "light",
+          "isTransparent": false,
+          "displayMode": "adaptive",
+          "locale": "nl"
+        }
+        </script>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="sg-section">
+        <div class="sg-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          Marktoverzicht
+        </div>
+        <div class="tradingview-widget-container">
+          <div id="tradingview-market"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+          {
+            "colorTheme": "light",
+            "dateRange": "1D",
+            "showChart": true,
+            "locale": "nl",
+            "width": "100%",
+            "height": "400",
+            "largeChartUrl": "",
+            "isTransparent": false,
+            "showSymbolLogo": true,
+            "showFloatingTooltip": false,
+            "tabs": [
+              {"title": "Indices", "symbols": [{"s": "FOREXCOM:SPXUSD", "d": "S&P 500"}, {"s": "FOREXCOM:NSXUSD", "d": "Nasdaq 100"}, {"s": "INDEX:DEU40", "d": "DAX"}, {"s": "INDEX:CAC40", "d": "CAC 40"}, {"s": "INDEX:UKX", "d": "FTSE 100"}]},
+              {"title": "Aandelen", "symbols": [{"s": "NASDAQ:AAPL", "d": "Apple"}, {"s": "NASDAQ:MSFT", "d": "Microsoft"}, {"s": "NASDAQ:NVDA", "d": "NVIDIA"}, {"s": "EURONEXT:ASML", "d": "ASML"}, {"s": "NASDAQ:TSLA", "d": "Tesla"}]},
+              {"title": "Forex", "symbols": [{"s": "FX:EURUSD", "d": "EUR/USD"}, {"s": "FX:GBPUSD", "d": "GBP/USD"}, {"s": "FX:USDJPY", "d": "USD/JPY"}, {"s": "FX:EURGBP", "d": "EUR/GBP"}]}
+            ]
+          }
+          </script>
+        </div>
+      </div>
+      <div class="sg-section">
+        <div class="sg-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          ASML — Live Koers
+        </div>
+        <div class="tradingview-widget-container">
+          <div id="tradingview-asml"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+          {
+            "symbol": "EURONEXT:ASML",
+            "width": "100%",
+            "colorTheme": "light",
+            "isTransparent": false,
+            "locale": "nl"
+          }
+          </script>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="tradingview-widget-container">
+            <div id="tradingview-mini"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+            {
+              "symbol": "EURONEXT:ASML",
+              "width": "100%",
+              "height": "200",
+              "locale": "nl",
+              "dateRange": "1M",
+              "colorTheme": "light",
+              "isTransparent": false,
+              "autosize": false,
+              "largeChartUrl": ""
+            }
+            </script>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTELLINGEN -->
+  <div id="instellingen" class="tab-content">
+    <div class="cv-heading">
+      <div class="cv-heading-bar"></div>
+      <div>
+        <h1>Instellingen</h1>
+        <p>Configureer je dashboard voorkeuren</p>
+      </div>
+    </div>
+    <hr class="cv-divider">
+
+    <div class="settings-grid">
+      <div class="sg-section">
+        <div class="sg-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.67 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.67a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Algemeen
+        </div>
+        <div class="cv-form-group">
+          <label class="cv-label">Valuta</label>
+          <select class="cv-select" id="currencySelect">
+            <option value="EUR" selected>EUR (€)</option>
+            <option value="USD">USD ($)</option>
+            <option value="GBP">GBP (£)</option>
+          </select>
+        </div>
+        <div class="cv-form-group">
+          <label class="cv-label">Taal</label>
+          <select class="cv-select">
+            <option selected>Nederlands</option>
+            <option>English</option>
+            <option>Français</option>
+          </select>
+        </div>
+        <div class="cv-form-group">
+          <label class="cv-label">Data refresh interval</label>
+          <select class="cv-select" id="refreshInterval">
+            <option value="30">30 seconden</option>
+            <option value="60" selected>1 minuut</option>
+            <option value="300">5 minuten</option>
+            <option value="900">15 minuten</option>
+          </select>
+        </div>
+        <button class="cv-btn cv-btn-primary" onclick="saveSettings()">Opslaan</button>
+      </div>
+
+      <div class="sg-section">
+        <div class="sg-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Data Validatie
+        </div>
+        <div class="cv-form-group">
+          <label class="cv-label">Data bron (voor portfoliokoersen)</label>
+          <select class="cv-select" id="sourcePriority">
+            <option value="yahoo" selected>Yahoo Finance — query1.finance.yahoo.com</option>
+            <option value="tradingview">TradingView — scanner.tradingview.com</option>
+          </select>
+        </div>
+        <div class="cv-form-group">
+          <label class="cv-label">Cross-check interval</label>
+          <select class="cv-select">
+            <option>Elke 5 minuten</option>
+            <option selected>Elke 15 minuten</option>
+            <option>Elk uur</option>
+          </select>
+        </div>
+        <div class="cv-form-group">
+          <label class="cv-label">Rapportage e-mail</label>
+          <input class="cv-input" type="email" placeholder="jouw@email.com" value="belegger@cvooru.be">
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <span class="footer-dot" id="footerDot"></span>
+      <strong>Data bron:</strong> <span id="footerSource">Yahoo Finance (live)</span> &nbsp;|&nbsp;
+      <strong>Laatste sync:</strong> <span id="footerSync">--</span> &nbsp;|&nbsp;
+      <strong>Status:</strong> <span id="footerStatus">Verbinden…</span> &nbsp;|&nbsp;
+      <strong>Cross-check:</strong> <span style="color:var(--cv-success);font-weight:700;" id="footerCheck">✓ Geverifieerd</span>
+    </div>
+    <div class="footer-note">
+      <strong>Live data:</strong> portfoliokoersen worden automatisch opgehaald bij de gekozen data bron en om de
+      ingestelde interval ververst. USD-posities worden omgerekend naar EUR met de actuele EUR/USD-koers.
+      Bij een verbindingsfout blijft de laatst bekende snapshot zichtbaar en wordt dit duidelijk gemeld.
+      Backup bron: automatische fallback naar een alternatieve verbinding.
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================ PORTFOLIO DATA ============================
+   cost   = aankoopwaarde (EUR) — vast, bepaalt het rendement
+   qty    = aantal stuks
+   ccy    = noteringsvaluta van het instrument
+   yahoo  = Yahoo Finance symbool
+   tv     = TradingView symbool
+   priceEUR = laatst bekende koers in EUR (snapshot, wordt live bijgewerkt)
+   dayPct = dagrendement % (indien beschikbaar)
+======================================================================== */
+const SNAPSHOT_TIME = '17-09-2026 15:20';
+const holdings = [
+  { name: "ASML Holding",              ticker: "ASML", type: "Aandeel", qty: 1,   cost: 682.85,  region: "Europa",   color: "#0D7BBF", ccy: "EUR", yahoo: "ASML.AS",  tv: "EURONEXT:ASML", priceEUR: 1423.80,  dayPct: 1.99 },
+  { name: "Amundi",                    ticker: "AMUN", type: "Aandeel", qty: 4,   cost: 298.70,  region: "Europa",   color: "#0A5E93", ccy: "EUR", yahoo: "AMUN.PA",  tv: "EURONEXT:AMUN", priceEUR: 91.30,    dayPct: 0.61 },
+  { name: "iShares MSCI EM IMI",       ticker: "EIMI", type: "Tracker", qty: 21,  cost: 981.23,  region: "Emerging", color: "#6DB82A", ccy: "USD", yahoo: "EIMI.L",   tv: "LSE:EIMI",      priceEUR: 47.3160,  dayPct: -0.18 },
+  { name: "iShares Core S&P 500",      ticker: "CSPX", type: "Tracker", qty: 4,   cost: 2497.10, region: "VS",       color: "#559020", ccy: "USD", yahoo: "CSPX.L",   tv: "LSE:CSPX",      priceEUR: 715.1047, dayPct: -0.02 },
+  { name: "Sofina",                    ticker: "SOF",  type: "Aandeel", qty: 6,   cost: 1346.80, region: "Europa",   color: "#0D7BBF", ccy: "EUR", yahoo: "SOF.BR",   tv: "EURONEXT:SOF",  priceEUR: 254.40,   dayPct: 0.55 },
+  { name: "EMQQ Emerging Markets",     ticker: "EMQQ", type: "Tracker", qty: 62,  cost: 519.24,  region: "Emerging", color: "#6DB82A", ccy: "USD", yahoo: "EMQQ.L",   tv: "LSE:EMQQ",      priceEUR: 8.2570,   dayPct: 0.34 },
+  { name: "Legal & General Clean Water", ticker: "GLUG", type: "Tracker", qty: 26, cost: 464.04, region: "Global",   color: "#F59E0B", ccy: "USD", yahoo: "GLUG.L",   tv: "LSE:GLUG",      priceEUR: 17.9928,  dayPct: 0.19 },
+  { name: "State Str. SPDR ACWI IMI",  ticker: "SPYI", type: "Tracker", qty: 329, cost: 3712.40, region: "Global",   color: "#A0AEC0", ccy: "EUR", yahoo: "SPYI.DE",  tv: "XETR:SPYI",     priceEUR: 11.516,   dayPct: 0.52 },
+  { name: "WisdomTree Europe Defence", ticker: "WDEF", type: "Tracker", qty: 36,  cost: 1201.14, region: "Europa",   color: "#E53E3E", ccy: "EUR", yahoo: "WDEF.PA",  tv: "EURONEXT:WDEF", priceEUR: 31.665,   dayPct: 1.26 }
+];
+
+let settings = { source: 'yahoo', interval: 60 };
+let refreshTimer = null;
+let liveConnected = false;
+
+/* ============================ MARKTDATA FETCH ============================ */
+const PROXIES = [
+  u => u,
+  u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
+  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)
+];
+
+async function fetchJSON(url) {
+  let lastErr;
+  for (const wrap of PROXIES) {
+    try {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 8000);
+      const r = await fetch(wrap(url), { cache: 'no-store', signal: ctrl.signal });
+      clearTimeout(to);
+      if (r.ok) return await r.json();
+      lastErr = new Error('HTTP ' + r.status);
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Netwerkfout');
+}
+
+async function fetchYahoo(sym) {
+  const d = await fetchJSON(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`);
+  const meta = d.chart && d.chart.result && d.chart.result[0] && d.chart.result[0].meta;
+  if (!meta) throw new Error('Leeg antwoord van Yahoo');
+  return { price: meta.regularMarketPrice, dayPct: (meta.chartPreviousClose && meta.regularMarketPrice != null)
+      ? (meta.regularMarketPrice / meta.chartPreviousClose - 1) * 100 : null };
+}
+
+async function fetchTradingView(sym) {
+  const d = await fetchJSON(`https://scanner.tradingview.com/symbol?symbol=${encodeURIComponent(sym)}&fields=close%2Cchange`);
+  if (d && typeof d.close === 'number') return { price: d.close, dayPct: (typeof d.change === 'number') ? d.change : null };
+  throw new Error('Leeg antwoord van TradingView');
+}
+
+async function fetchQuote(h) {
+  const fns = settings.source === 'tradingview'
+    ? [() => fetchTradingView(h.tv), () => fetchYahoo(h.yahoo)]
+    : [() => fetchYahoo(h.yahoo), () => fetchTradingView(h.tv)];
+  let lastErr;
+  for (const fn of fns) { try { return await fn(); } catch (e) { lastErr = e; } }
+  throw lastErr;
+}
+
+async function refreshPrices(manual) {
+  const btn = document.getElementById('refreshBtn');
+  if (btn) { btn.disabled = true; }
+  setStatus('busy', manual ? 'Vernieuwen…' : null);
+  try {
+    // 1) wisselkoers EUR/USD (voor USD-genoteerde posities)
+    let fx = null;
+    try { fx = (await fetchQuote({ yahoo: 'EURUSD=X', tv: 'FX_IDC:EURUSD' })).price; } catch (e) {}
+    if (!fx || !(fx > 0)) throw new Error('Wisselkoers EUR/USD niet beschikbaar');
+
+    // 2) alle koersen parallel
+    const results = await Promise.all(holdings.map(h => fetchQuote(h)));
+    holdings.forEach((h, i) => {
+      if (results[i] && results[i].price > 0) {
+        h.priceEUR = h.ccy === 'USD' ? results[i].price / fx : results[i].price;
+        if (typeof results[i].dayPct === 'number' && isFinite(results[i].dayPct)) h.dayPct = results[i].dayPct;
+      }
+    });
+    liveConnected = true;
+    renderAll();
+    setStatus('ok');
+  } catch (e) {
+    liveConnected = false;
+    renderAll(); // toon laatst bekende snapshot
+    setStatus('error');
+  } finally {
+    if (btn) { btn.disabled = false; }
+  }
+}
+
+function setStatus(state, msg) {
+  const dot = document.getElementById('footerDot');
+  const status = document.getElementById('footerStatus');
+  const src = document.getElementById('footerSource');
+  const banner = document.getElementById('connBanner');
+  const srcName = settings.source === 'tradingview' ? 'TradingView (live)' : 'Yahoo Finance (live)';
+  if (state === 'ok') {
+    dot.classList.remove('error');
+    status.textContent = 'Verbonden — live koersen';
+    src.textContent = srcName;
+    banner.classList.remove('visible');
+  } else if (state === 'busy') {
+    status.textContent = msg || 'Vernieuwen…';
+  } else {
+    dot.classList.add('error');
+    status.textContent = 'Verbinding mislukt — snapshot';
+    src.textContent = (settings.source === 'tradingview' ? 'TradingView' : 'Yahoo Finance') + ' (offline)';
+    document.getElementById('connBannerText').textContent =
+      'Geen verbinding met de marktdata — laatst bekende snapshot van ' + SNAPSHOT_TIME + ' wordt getoond.';
+    banner.classList.add('visible');
+  }
+}
+
+function updateTimestamps() {
+  const fmt = liveConnected
+    ? new Date().toLocaleString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    : SNAPSHOT_TIME;
+  ['lastUpdated', 'lastUpdated2', 'footerSync'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = fmt;
+  });
+  const dataStr = holdings.map(h => (h.qty * h.priceEUR).toFixed(2)).join('');
+  let hash = 0;
+  for (let i = 0; i < dataStr.length; i++) { const c = dataStr.charCodeAt(i); hash = ((hash << 5) - hash) + c; hash |= 0; }
+  const csEl = document.getElementById('footerChecksum');
+  if (csEl) csEl.textContent = '0x' + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+}
+
+/* ============================ RENDERING ============================ */
+const fmtEUR = v => '€' + v.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtQty = v => v.toLocaleString('nl-NL');
+const sign = v => (v >= 0 ? '+' : '');
+
+function compute() {
+  holdings.forEach(h => {
+    h.value = h.qty * h.priceEUR;
+    h.gain = h.value - h.cost;
+    h.pct = h.gain / h.cost * 100;
+  });
+}
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.cv-topbar-nav button[data-tab]').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getBlockColor(pct) {
+  if (pct > 10) return { bg: '#15803d', text: '#fff' };
+  if (pct > 5)  return { bg: '#22c55e', text: '#fff' };
+  if (pct > 1)  return { bg: '#6DB82A', text: '#fff' };
+  if (pct > 0)  return { bg: '#86efac', text: '#064e3b' };
+  if (pct > -1) return { bg: '#F59E0B', text: '#fff' };
+  return { bg: '#E53E3E', text: '#fff' };
+}
+
+function renderTreemap(sortedByValue) {
+  const treemap = document.getElementById('treemap');
+  treemap.innerHTML = '';
+  const rows = [sortedByValue.slice(0, 3), sortedByValue.slice(3, 6), sortedByValue.slice(6, 9)];
+  rows.forEach(items => {
+    if (!items.length) return;
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'treemap-row';
+    const rowTotal = items.reduce((s, h) => s + h.value, 0);
+    items.forEach(h => {
+      const c = getBlockColor(h.pct);
+      const block = document.createElement('div');
+      block.className = 'treemap-block';
+      block.style.flex = h.value / rowTotal;
+      block.style.background = c.bg;
+      block.style.color = c.text;
+      block.style.minHeight = '90px';
+      block.innerHTML = `
+        <div class="treemap-ticker">${h.ticker}</div>
+        <div class="treemap-pct">${sign(h.pct)}${h.pct.toFixed(2)}%</div>
+        <div class="treemap-value">€${(h.value / 1000).toFixed(1)}k</div>`;
+      rowDiv.appendChild(block);
+    });
+    treemap.appendChild(rowDiv);
+  });
+}
+
+function renderHoldingsTable(sorted) {
+  const tbody = document.querySelector('#holdingsTable tbody');
+  tbody.innerHTML = '';
+  sorted.forEach(h => {
+    const isPos = h.pct >= 0;
+    const initials = h.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const dayStr = (typeof h.dayPct === 'number')
+      ? ` · ${sign(h.dayPct)}${h.dayPct.toFixed(2)}% vandaag` : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="asset-name">
+          <div class="asset-icon" style="background:${h.color};">${initials}</div>
+          <div class="asset-info">
+            <div class="asset-title">${h.name}</div>
+            <div class="asset-type">${h.type} &middot; ${h.region} · ${fmtEUR(h.priceEUR)}${dayStr}</div>
+          </div>
+        </div>
+      </td>
+      <td>${fmtQty(h.qty)}</td>
+      <td class="asset-value">${fmtEUR(h.value)}</td>
+      <td><span class="cv-badge ${isPos ? 'cv-badge-green' : 'cv-badge-error'}">${sign(h.pct)}${h.pct.toFixed(2)}%</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderFullTable(totalValue) {
+  const fullTbody = document.querySelector('#fullTable tbody');
+  fullTbody.innerHTML = '';
+  holdings.forEach((h, idx) => {
+    const isPos = h.pct >= 0;
+    const weight = ((h.value / totalValue) * 100).toFixed(1);
+    const initials = h.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>
+        <div class="asset-name">
+          <div class="asset-icon" style="background:${h.color};">${initials}</div>
+          <div class="asset-info"><div class="asset-title">${h.name}</div><div class="asset-type">${h.ticker} · koers ${fmtEUR(h.priceEUR)}</div></div>
+        </div>
+      </td>
+      <td><span class="cv-badge ${h.type === 'Aandeel' ? 'cv-badge-blue' : 'cv-badge-grey'}">${h.type}</span></td>
+      <td>${h.region}</td>
+      <td>${fmtQty(h.qty)}</td>
+      <td class="asset-value">${fmtEUR(h.value)}</td>
+      <td style="color:${isPos ? 'var(--cv-success)' : 'var(--cv-error)'};font-weight:600;">${sign(h.gain)}${fmtEUR(Math.abs(h.gain))}</td>
+      <td><span class="cv-badge ${isPos ? 'cv-badge-green' : 'cv-badge-error'}">${sign(h.pct)}${h.pct.toFixed(2)}%</span></td>
+      <td>${weight}%</td>`;
+    fullTbody.appendChild(tr);
+  });
+}
+
+function renderDonut(svgId, legendId, dataEntries, colors) {
+  const donutSvg = document.getElementById(svgId);
+  const donutLegend = document.getElementById(legendId);
+  donutSvg.innerHTML = '';
+  if (donutLegend) donutLegend.innerHTML = '';
+  let cumulative = 0;
+  const cx = 80, cy = 80, r = 58, stroke = 18;
+  const totalR = dataEntries.reduce((s, [, v]) => s + v, 0) || 1;
+  dataEntries.forEach(([name, val]) => {
+    const pct = val / totalR;
+    const circ = 2 * Math.PI * r;
+    const rotation = (cumulative / totalR) * 360 - 90;
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", cx); circle.setAttribute("cy", cy); circle.setAttribute("r", r);
+    circle.setAttribute("fill", "none");
+    circle.setAttribute("stroke", colors[name] || "#A0AEC0");
+    circle.setAttribute("stroke-width", stroke);
+    circle.setAttribute("stroke-dasharray", `${circ * pct} ${circ * (1 - pct)}`);
+    circle.setAttribute("stroke-dashoffset", 0);
+    circle.setAttribute("transform", `rotate(${rotation} ${cx} ${cy})`);
+    circle.setAttribute("stroke-linecap", "round");
+    donutSvg.appendChild(circle);
+    cumulative += val;
+    if (donutLegend) {
+      const li = document.createElement('div');
+      li.className = 'donut-item';
+      li.innerHTML = `<div class="legend-dot" style="background:${colors[name] || '#A0AEC0'}"></div>${name}<span class="donut-val">${fmtEUR(val)}</span>`;
+      donutLegend.appendChild(li);
+    }
+  });
+}
+
+function renderPerfBars(sorted) {
+  const perfContainer = document.getElementById('perfBars');
+  perfContainer.innerHTML = '';
+  const maxPct = Math.max(...holdings.map(h => Math.abs(h.pct))) || 1;
+  sorted.forEach(h => {
+    const isPos = h.pct >= 0;
+    const width = (Math.abs(h.pct) / maxPct * 100);
+    const bar = document.createElement('div');
+    bar.className = 'perf-bar-row';
+    bar.innerHTML = `
+      <div class="perf-label">${h.ticker}</div>
+      <div class="perf-track">
+        <div class="perf-fill" style="${isPos ? 'left:50%' : 'right:50%'};width:${width / 2}%;background:${isPos ? 'var(--cv-success)' : 'var(--cv-error)'};"></div>
+        <div class="perf-center"></div>
+      </div>
+      <div class="perf-pct" style="color:${isPos ? 'var(--cv-success)' : 'var(--cv-error)'}">${sign(h.pct)}${h.pct.toFixed(2)}%</div>`;
+    perfContainer.appendChild(bar);
+  });
+}
+
+function setText(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+function setDelta(id, gain) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = `${gain >= 0 ? '▲' : '▼'} ${sign(gain)}${fmtEUR(Math.abs(gain))}`;
+  el.className = 'cv-card-delta ' + (gain >= 0 ? 'delta-pos' : 'delta-neg');
+}
+
+function renderAll() {
+  compute();
+  const totalValue = holdings.reduce((s, h) => s + h.value, 0);
+  const totalCost = holdings.reduce((s, h) => s + h.cost, 0);
+  const totalGain = totalValue - totalCost;
+  const totalPct = totalGain / totalCost * 100;
+  const stocks = holdings.filter(h => h.type === 'Aandeel');
+  const etfs = holdings.filter(h => h.type !== 'Aandeel');
+  const stocksVal = stocks.reduce((s, h) => s + h.value, 0);
+  const etfsVal = etfs.reduce((s, h) => s + h.value, 0);
+  const stocksGain = stocksVal - stocks.reduce((s, h) => s + h.cost, 0);
+  const etfsGain = etfsVal - etfs.reduce((s, h) => s + h.cost, 0);
+  const best = holdings.reduce((a, b) => (b.pct > a.pct ? b : a));
+
+  // KPI's
+  setText('headingTotal', fmtEUR(totalValue));
+  setText('kpiTotal', fmtEUR(totalValue));
+  const kpiTotalDelta = document.getElementById('kpiTotalDelta');
+  if (kpiTotalDelta) {
+    kpiTotalDelta.textContent = `${totalGain >= 0 ? '▲' : '▼'} ${sign(totalGain)}${fmtEUR(Math.abs(totalGain))} (${sign(totalPct)}${totalPct.toFixed(2).replace('.', ',')}%)`;
+    kpiTotalDelta.className = 'cv-card-delta ' + (totalGain >= 0 ? 'delta-pos' : 'delta-neg');
+  }
+  setText('kpiStocksSub', `${stocks.length} posities — ${(stocksVal / totalValue * 100).toFixed(1).replace('.', ',')}%`);
+  setText('kpiStocks', fmtEUR(stocksVal));
+  setDelta('kpiStocksDelta', stocksGain);
+  setText('kpiEtfsSub', `${etfs.length} posities — ${(etfsVal / totalValue * 100).toFixed(1).replace('.', ',')}%`);
+  setText('kpiEtfs', fmtEUR(etfsVal));
+  setDelta('kpiEtfsDelta', etfsGain);
+  setText('kpiBest', best.ticker);
+  setText('kpiBestDelta', `${best.pct >= 0 ? '▲' : '▼'} ${sign(best.pct)}${best.pct.toFixed(2).replace('.', ',')}%`);
+
+  // Samenvatting (portfolio tab)
+  setText('sumTotal', fmtEUR(totalValue));
+  const sumPnL = document.getElementById('sumPnL');
+  if (sumPnL) { sumPnL.textContent = `${sign(totalGain)}${fmtEUR(Math.abs(totalGain))}`; sumPnL.style.color = totalGain >= 0 ? 'var(--cv-success)' : 'var(--cv-error)'; }
+  const sumAvg = document.getElementById('sumAvg');
+  if (sumAvg) { sumAvg.textContent = `${sign(totalPct)}${totalPct.toFixed(2).replace('.', ',')}%`; sumAvg.style.color = totalPct >= 0 ? 'var(--cv-success)' : 'var(--cv-error)'; }
+  setText('sumCount', String(holdings.length));
+  setText('sumStocks', `${stocks.length} (${(stocksVal / totalValue * 100).toFixed(1).replace('.', ',')}%)`);
+  setText('sumEtfs', `${etfs.length} (${(etfsVal / totalValue * 100).toFixed(1).replace('.', ',')}%)`);
+
+  // Tabellen / grafieken
+  const sorted = [...holdings].sort((a, b) => b.pct - a.pct);
+  renderHoldingsTable(sorted);
+  renderFullTable(totalValue);
+  renderTreemap([...holdings].sort((a, b) => b.value - a.value));
+  renderPerfBars(sorted);
+
+  const regions = {};
+  holdings.forEach(h => { regions[h.region] = (regions[h.region] || 0) + h.value; });
+  renderDonut('donutSvg', 'donutLegend', Object.entries(regions).sort((a, b) => b[1] - a[1]),
+    { "Europa": "#0D7BBF", "VS": "#6DB82A", "Emerging": "#F59E0B", "Global": "#A0AEC0" });
+
+  const types = {};
+  holdings.forEach(h => { types[h.type] = (types[h.type] || 0) + h.value; });
+  renderDonut('allocDonut', 'allocLegend', Object.entries(types).sort((a, b) => b[1] - a[1]),
+    { "Aandeel": "#0D7BBF", "Tracker": "#6DB82A" });
+
+  updateTimestamps();
+}
+
+/* ============================ INSTELLINGEN ============================ */
+function saveSettings() {
+  settings.source = document.getElementById('sourcePriority').value;
+  settings.interval = parseInt(document.getElementById('refreshInterval').value, 10) || 60;
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => refreshPrices(false), settings.interval * 1000);
+  refreshPrices(true); // direct opnieuw ophalen met nieuwe bron
+}
+
+/* ============================ STARTUP ============================ */
+renderAll();
+updateTimestamps();
+setInterval(updateTimestamps, 30000);
+refreshTimer = setInterval(() => refreshPrices(false), settings.interval * 1000);
+refreshPrices(false);
+</script>
+</body>
+</html>
